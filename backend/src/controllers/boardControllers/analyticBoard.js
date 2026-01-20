@@ -1,0 +1,1 @@
+//phân tích bảng để làm AI hỗ trợ
