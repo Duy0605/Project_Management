@@ -1,4 +1,5 @@
 const axios = require("axios");
+const { response } = require("../app");
 
 const { AI_API_KEY, AI_MODEL } = process.env;
 
@@ -20,13 +21,17 @@ async function callGemini(prompt) {
 function extractTextFromGemini(response) {
     if (!response?.candidates?.length) return "";
 
-    const parts = response.candidates[0]?.content?.parts;
-    if (!Array.isArray(parts)) return "";
-
-    return parts
+    let text = response.candidates[0].content.parts
         .map((part) => part.text || "")
         .join("")
         .trim();
+
+    text = text
+        .replace(/^\s*```json\s*/, "")
+        .replace(/\s*```\s*$/, "")
+        .trim();
+
+    return text;
 }
 
 function buildPrompt(description) {
@@ -36,6 +41,12 @@ Bạn là một API backend, KHÔNG phải chatbot.
 Nhiệm vụ:
 - Phân tích mô tả board
 - Sinh cấu trúc Kanban
+
+NGÔN NGỮ BẮT BUỘC:
+- TOÀN BỘ nội dung phải bằng tiếng Việt
+- KHÔNG sử dụng tiếng Anh trong bất kỳ field nào
+- KHÔNG phiên âm, KHÔNG từ vay mượn tiếng anh
+- Nếu KHÔNG thể trả tiếng việt → trả về JSON rỗng
 
 Mô tả người dùng:
 "${description}"
@@ -51,11 +62,11 @@ SCHEMA CHÍNH XÁC:
 {
   "columns": [
     {
-      "title": "string",
+      "title": "string (tiếng việt)",
       "tasks": [
         {
-          "title": "string",
-          "description": "string"
+          "title": "string (tiếng việt)",
+          "description": "string (tiếng việt)"
         }
       ]
     }
@@ -63,7 +74,7 @@ SCHEMA CHÍNH XÁC:
 }
 
 RÀNG BUỘC:
-- 3–6 columns
+- 5–7 columns
 - 5–7 tasks / column
 - title ngắn gọn, không emoji
 `;
@@ -81,7 +92,11 @@ async function generateBoardStructure(description) {
             data: boardStructure,
         };
     } catch (error) {
-        console.error("AI error:", error.message);
+        console.error("AI error:", {
+            message: error.message,
+            response: error.response?.data,
+            status: error.response?.status,
+        });
 
         return {
             success: false,

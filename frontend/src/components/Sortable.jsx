@@ -1,261 +1,214 @@
 import { useState, useEffect, useRef } from "react";
-import { FiPlus, FiX, FiCheck } from "react-icons/fi";
-import { useSortable } from "@dnd-kit/sortable";
+import { FiPlus, FiX, FiCheck, FiGripVertical } from "react-icons/fi";
+import { useSortable, SortableContext } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import DetailTask from "./DetailTask";
 import { useDroppable } from "@dnd-kit/core";
-import {
-    SortableContext,
-    verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+import { verticalListSortingStrategy } from "@dnd-kit/sortable";
+
 import SortableTask from "./SortableTask";
 import TaskCard from "./TaskCard";
+import DetailTask from "./DetailTask";
+
 
 const TaskColumn = ({
     column,
+    dragHandleProps,
     onDelete,
     onUpdateTitle,
-    dragHandleProps,
     onCreateTask,
     onTaskUpdate,
 }) => {
     const columnId = (column._id || column.id).toString();
 
     const [isEditing, setIsEditing] = useState(false);
-    const [editTitle, setEditTitle] = useState(column.title);
+    const [title, setTitle] = useState(column.title);
     const [showAddTask, setShowAddTask] = useState(false);
     const [newTaskTitle, setNewTaskTitle] = useState("");
-    const [taskLoading, setTaskLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
     const [selectedTask, setSelectedTask] = useState(null);
-
-    const { setNodeRef, isOver } = useDroppable({
-        id: columnId,
-        data: {
-            type: "column",
-            column,
-        },
-    });
-
-    const taskIds = (column.tasks || []).map((task) =>
-        (task._id || task.id).toString(),
-    );
 
     const taskFormRef = useRef(null);
 
-    const handleTaskClick = (task) => {
-        setSelectedTask(task);
-    };
+    const { setNodeRef, isOver } = useDroppable({
+        id: columnId,
+        data: { type: "column" },
+    });
 
-    const handleCloseDetail = () => {
-        setSelectedTask(null);
-    };
+    const taskIds = (column.tasks || []).map((t) => (t._id || t.id).toString());
 
-    const handleSaveTitle = async () => {
-        const title = editTitle.trim();
-
-        if (!title) {
-            alert("Tên cột không được để trống");
-            setEditTitle(column.title);
-            return;
-        }
-
-        if (title === column.title) {
+    // lưu tiêu đề sau khi chỉnh sửa
+    const saveTitle = async () => {
+        const newTitle = title.trim();
+        if (!newTitle || newTitle === column.title) {
+            setTitle(column.title);
             setIsEditing(false);
             return;
         }
 
-        const success = await onUpdateTitle(columnId, title);
-        success ? setIsEditing(false) : setEditTitle(column.title);
+        const success = await onUpdateTitle(columnId, newTitle);
+        if (!success) setTitle(column.title);
+        setIsEditing(false);
     };
 
-    const handleKeyDown = (e) => {
-        if (e.key === "Enter") handleSaveTitle();
-        if (e.key === "Escape") {
-            setEditTitle(column.title);
-            setIsEditing(false);
-        }
-    };
-
-    const handleCreateTask = async (e) => {
+    const createTask = async (e) => {
         e.preventDefault();
         if (!newTaskTitle.trim()) return;
 
-        setTaskLoading(true);
+        setLoading(true);
         const success = await onCreateTask(columnId, newTaskTitle.trim());
-        setTaskLoading(false);
+        setLoading(false);
 
         if (success) {
             setNewTaskTitle("");
-            // Không đóng form, giữ focus để tiếp tục thêm task
         }
     };
 
-    const closeTaskForm = () => {
-        setShowAddTask(false);
-        setNewTaskTitle("");
-    };
-
-    // Click ngoài
+    // click ngoài
     useEffect(() => {
-        const handleClickOutside = (event) => {
+        const handler = (e) => {
             if (
                 taskFormRef.current &&
-                !taskFormRef.current.contains(event.target)
+                !taskFormRef.current.contains(e.target)
             ) {
-                closeTaskForm();
+                setShowAddTask(false);
+                setNewTaskTitle("");
             }
         };
 
         if (showAddTask) {
-            document.addEventListener("mousedown", handleClickOutside);
-            return () =>
-                document.removeEventListener("mousedown", handleClickOutside);
+            document.addEventListener("mousedown", handler);
+            return () => document.removeEventListener("mousedown", handler);
         }
     }, [showAddTask]);
 
     return (
         <div
             ref={setNodeRef}
-            className={`flex flex-col p-3 shadow-sm bg-slate-800 w-72 h-fit max-h-[calc(100vh-200px)] shrink-0 rounded-xl transition-all ${
+            className={`flex flex-col p-3 w-72 shrink-0 rounded-xl bg-slate-800 transition ${
                 isOver ? "ring-2 ring-blue-500" : ""
             }`}
         >
-            <div className="flex items-center justify-between mb-4">
+            {/* Header */}
+            <div className="flex items-center gap-2 mb-4">
+                {/* Drag handle */}
+                <button
+                    {...dragHandleProps}
+                    className="p-1 text-gray-400 cursor-grab hover:text-white"
+                >
+                    <FiGripVertical />
+                </button>
+
                 {isEditing ? (
-                    <div className="flex items-center flex-1 gap-2">
-                        <input
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            onKeyDown={handleKeyDown}
-                            onBlur={handleSaveTitle}
-                            autoFocus
-                            className="flex-1 px-2 py-1 text-sm font-bold text-gray-100 border border-gray-600 rounded bg-slate-800 focus:outline-none focus:border-blue-500"
-                        />
-                        <button
-                            onClick={handleSaveTitle}
-                            className="p-1 text-green-400 rounded hover:bg-slate-700"
-                        >
-                            <FiCheck className="w-4 h-4" />
-                        </button>
-                    </div>
+                    <input
+                        autoFocus
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        onBlur={saveTitle}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter") saveTitle();
+                            if (e.key === "Escape") {
+                                setTitle(column.title);
+                                setIsEditing(false);
+                            }
+                        }}
+                        className="flex-1 px-2 py-1 text-sm font-bold text-white rounded bg-slate-700"
+                    />
                 ) : (
                     <h3
-                        {...dragHandleProps}
                         onDoubleClick={() => setIsEditing(true)}
-                        className="flex-1 font-bold text-gray-100 hover:text-blue-400"
+                        className="flex-1 font-bold text-gray-100 select-none"
                     >
                         {column.title}
                     </h3>
                 )}
 
-                <div className="flex gap-1">
-                    <button
-                        onClick={() => onDelete(columnId, column.title)}
-                        className="p-1 text-gray-400 rounded hover:bg-slate-700 hover:text-red-400"
-                        title="Xoá cột"
-                    >
-                        <FiX className="w-4 h-4" />
-                    </button>
-                </div>
-            </div>
-
-            <div className="flex-1 space-y-3 overflow-y-auto">
-                <SortableContext
-                    items={taskIds}
-                    strategy={verticalListSortingStrategy}
+                <button
+                    onClick={() => onDelete(columnId, column.title)}
+                    className="p-1 text-gray-400 hover:text-red-400"
                 >
-                    <div className="flex-1 pb-2 space-y-2 overflow-y-auto scrollbar-thin scrollbar-thumb-slate-600 scrollbar-track-slate-800">
-                        {(column.tasks || []).map((task) => (
-                            <SortableTask key={task._id || task.id} task={task}>
-                                <TaskCard
-                                    task={task}
-                                    onClick={handleTaskClick}
-                                />
-                            </SortableTask>
-                        ))}
-                    </div>
-                </SortableContext>
-
-                {selectedTask && (
-                    <DetailTask
-                        taskId={selectedTask._id || selectedTask.id}
-                        columnName={column.title}
-                        onClose={handleCloseDetail}
-                        onUpdate={() => {
-                            if (onTaskUpdate) {
-                                onTaskUpdate(column._id || column.id);
-                            }
-                        }}
-                    />
-                )}
-
-                {showAddTask ? (
-                    <div
-                        ref={taskFormRef}
-                        className="p-2 rounded-lg bg-slate-900"
-                    >
-                        <form onSubmit={handleCreateTask}>
-                            <textarea
-                                value={newTaskTitle}
-                                onChange={(e) =>
-                                    setNewTaskTitle(e.target.value)
-                                }
-                                onKeyDown={(e) => {
-                                    if (e.key === "Enter" && !e.shiftKey) {
-                                        e.preventDefault();
-                                        handleCreateTask(e);
-                                    }
-                                }}
-                                placeholder="Nhập tiêu đề cho thẻ này..."
-                                autoFocus
-                                rows={2}
-                                className="w-full px-3 py-2 mb-2 text-sm text-gray-100 border border-gray-600 rounded-lg resize-none bg-slate-800 focus:outline-none focus:border-blue-500"
-                            />
-                            <div className="flex gap-2">
-                                <button
-                                    type="submit"
-                                    disabled={
-                                        taskLoading || !newTaskTitle.trim()
-                                    }
-                                    className="px-3 py-1 text-sm font-medium text-white bg-blue-600 rounded hover:bg-blue-700 disabled:opacity-50"
-                                >
-                                    {taskLoading ? "Đang thêm..." : "Thêm thẻ"}
-                                </button>
-                                <button
-                                    type="button"
-                                    onClick={closeTaskForm}
-                                    className="px-2 py-1 text-gray-400 rounded hover:bg-slate-700"
-                                >
-                                    <FiX />
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                ) : (
-                    <button
-                        onClick={() => setShowAddTask(true)}
-                        className="flex items-center w-full gap-2 px-3 py-2 text-sm text-gray-100 rounded-lg hover:bg-slate-700"
-                    >
-                        <FiPlus />
-                        Thêm thẻ
-                    </button>
-                )}
+                    <FiX />
+                </button>
             </div>
+
+            {/* Tasks */}
+            <SortableContext
+                items={taskIds}
+                strategy={verticalListSortingStrategy}
+            >
+                <div className="flex-1 space-y-2 overflow-y-auto scrollbar-thin">
+                    {(column.tasks || []).map((task) => (
+                        <SortableTask key={task._id || task.id} task={task}>
+                            <TaskCard
+                                task={task}
+                                onClick={() => setSelectedTask(task)}
+                            />
+                        </SortableTask>
+                    ))}
+                </div>
+            </SortableContext>
+
+            {/* Chi tiết task */}
+            {selectedTask && (
+                <DetailTask
+                    taskId={selectedTask._id || selectedTask.id}
+                    columnName={column.title}
+                    onClose={() => setSelectedTask(null)}
+                    onUpdate={() => onTaskUpdate(column._id || column.id)}
+                />
+            )}
+
+            {/* Thêm task */}
+            {showAddTask ? (
+                <div
+                    ref={taskFormRef}
+                    className="p-2 mt-3 rounded-lg bg-slate-900"
+                >
+                    <form onSubmit={createTask}>
+                        <textarea
+                            autoFocus
+                            rows={2}
+                            value={newTaskTitle}
+                            onChange={(e) => setNewTaskTitle(e.target.value)}
+                            className="w-full px-2 py-1 text-sm text-white rounded bg-slate-800"
+                            placeholder="Nhập tiêu đề thẻ..."
+                        />
+                        <div className="flex gap-2 mt-2">
+                            <button
+                                type="submit"
+                                disabled={loading}
+                                className="px-3 py-1 text-sm text-white bg-blue-600 rounded"
+                            >
+                                {loading ? "Đang thêm..." : "Thêm"}
+                            </button>
+                            <button
+                                type="button"
+                                onClick={() => setShowAddTask(false)}
+                                className="px-2 py-1 text-gray-400"
+                            >
+                                <FiX />
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            ) : (
+                <button
+                    onClick={() => setShowAddTask(true)}
+                    className="flex items-center gap-2 mt-3 text-sm text-gray-300 hover:text-white"
+                >
+                    <FiPlus /> Thêm thẻ
+                </button>
+            )}
         </div>
     );
 };
 
-// Sắp xếp cột
-const SortableColumn = ({
-    column,
-    onDelete,
-    onUpdateTitle,
-    onCreateTask,
-    onTaskUpdate,
-}) => {
-    const { attributes, listeners, setNodeRef, transform, transition } =
+const SortableColumn = (props) => {
+    const { column } = props;
+
+    const { setNodeRef, transform, transition, attributes, listeners } =
         useSortable({
             id: (column._id || column.id).toString(),
+            data: { type: "column" },
         });
 
     const style = {
@@ -265,14 +218,7 @@ const SortableColumn = ({
 
     return (
         <div ref={setNodeRef} style={style} {...attributes}>
-            <TaskColumn
-                column={column}
-                onDelete={onDelete}
-                onUpdateTitle={onUpdateTitle}
-                dragHandleProps={listeners}
-                onCreateTask={onCreateTask}
-                onTaskUpdate={onTaskUpdate}
-            />
+            <TaskColumn {...props} dragHandleProps={listeners} />
         </div>
     );
 };

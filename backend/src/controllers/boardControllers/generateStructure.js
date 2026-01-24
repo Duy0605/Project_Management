@@ -15,7 +15,16 @@ const generateStructure = asyncHandler(async (req, res) => {
         });
     }
 
-    const plan = await generateBoardStructure(description);
+    const aiResult = await generateBoardStructure(description);
+
+    if (!aiResult.success || !aiResult.data || !Array.isArray(aiResult.data.columns)) {
+        return res.status(500).json({
+            success: false,
+            message: aiResult.error?.message || "AI không khả dụng",
+        });
+    }
+
+    const plan = aiResult.data;
 
     if (!plan || !Array.isArray(plan.columns)) {
         return res.status(500).json({

@@ -45,7 +45,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
         <p>Vui lòng nhấp vào liên kết bên dưới để đặt lại mật khẩu của bạn. Liên kết này sẽ hết hạn sau 10 phút.</p>
         <a href="${resetUrl}" target="_blank" style="display: inline-block; padding: 10px 20px; margin: 10px 0; font-size: 16px; color: #ffffff; background-color: #007bff; text-decoration: none; border-radius: 5px;">Đặt lại mật khẩu</a>
         <p>Nếu bạn không yêu cầu đặt lại mật khẩu, vui lòng bỏ qua email này.</p>
-        <p>Trân trọng,<br/>Đội ngũ Hỗ trợ</p>
+        <p>Trân trọng,<br/>Project Management</p>
     `;
     try {
         await sendMail({
@@ -66,7 +66,8 @@ const forgotPassword = asyncHandler(async (req, res) => {
 
         res.status(500).json({
             success: false,
-            message: "Gửi email đặt lại mật khẩu thất bại, vui lòng thử lại sau",
+            message:
+                "Gửi email đặt lại mật khẩu thất bại, vui lòng thử lại sau",
         });
     }
 });
