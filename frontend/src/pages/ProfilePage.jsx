@@ -49,9 +49,9 @@ const ProfilePage = () => {
     }
 
     return (
-        <div className="flex min-h-screen text-gray-200 bg-slate-900">
+        <div className="flex min-h-screen text-gray-100 bg-slate-900">
             {/* Content */}
-            <main className="flex-1 px-16 py-10">
+            <main className="flex-1 py-10 pl-32">
                 <h1 className="mb-6 text-3xl font-semibold">
                     Thông tin cá nhân
                 </h1>
@@ -67,14 +67,14 @@ const ProfilePage = () => {
                         type="text"
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
-                        className="w-full px-4 py-2 text-gray-100 border rounded-md bg-slate-800 border-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-2/3 px-4 py-2 text-gray-100 border rounded-md bg-slate-800 border-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                 </div>
                 <div className="mb-6">
                     <div className="flex items-center justify-between mb-2">
                         <label className="font-medium text-md">Email</label>
                     </div>
-                    <div className="w-full px-4 py-2 text-gray-400 border rounded-md border-slate-600">
+                    <div className="w-2/3 px-4 py-2 text-gray-400 border rounded-md border-slate-600">
                         {email}
                     </div>
                 </div>
@@ -88,7 +88,7 @@ const ProfilePage = () => {
                         rows={4}
                         value={bio}
                         onChange={(e) => setBio(e.target.value)}
-                        className="w-full px-4 py-2 text-gray-100 border rounded-md resize-none bg-slate-800 border-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        className="w-2/3 px-4 py-2 text-gray-100 border rounded-md resize-none bg-slate-800 border-slate-600 focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                 </div>
 

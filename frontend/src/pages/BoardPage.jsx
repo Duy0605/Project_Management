@@ -180,7 +180,7 @@ const BoardPage = () => {
                                     </div>
                                 )}
                             </div>
-                            <div className="mb-4 border-b border-gray-800"></div>
+                            <div className="mb-4 border-b border-slate-800"></div>
 
                             {/* No Boards Message */}
                             {section.boards.length === 0 &&

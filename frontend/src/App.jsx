@@ -14,6 +14,7 @@ import TaskPage from "./pages/TaskPage";
 import ProfilePage from "./pages/ProfilePage";
 import RecentActivities from "./pages/RecentActivities";
 import ResetPasswordPage from "./pages/ResetPasswordPage";
+import ChangePasswordPage from "./pages/ChangePasswordPage";
 
 import "./index.css";
 
@@ -99,6 +100,7 @@ function App() {
                 <Route path="/members" element={<MemberPage />} />
                 <Route path="/profile" element={<ProfilePage />} />
                 <Route path="/activities" element={<RecentActivities />} />
+                <Route path="/change-password" element={<ChangePasswordPage />} />
             </Route>
 
             {/* lỗi route */}

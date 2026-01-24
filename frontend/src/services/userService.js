@@ -63,6 +63,34 @@ const userService = {
             };
         }
     },
+    // Đổi mật khẩu
+    changePassword: async ({
+        currentPassword,
+        newPassword,
+        confirmPassword,
+    }) => {
+        try {
+            const response = await axiosInstance.post(
+                "/users/change-password",
+                {
+                    currentPassword,
+                    newPassword,
+                    confirmPassword,
+                },
+            );
+            return {
+                success: true,
+                message: response.data.message,
+            };
+        } catch (error) {
+            console.error("Change password error:", error);
+            return {
+                success: false,
+                message:
+                    error.response?.data?.message || "Lỗi khi đổi mật khẩu",
+            };
+        }
+    },
 };
 
 export default userService;

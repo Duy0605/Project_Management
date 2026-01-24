@@ -96,11 +96,12 @@ const MemberPage = () => {
     }
 
     return (
-        <div className="py-8 space-y-6 text-gray-100 px-14">
+        <div className="pt-8 space-y-4 text-gray-100 px-14">
             {/* Tổng số thành viên */}
             <p className="text-xl font-medium text-gray-100">
                 Người cộng tác: {members.length}
             </p>
+            <div className="mb-4 border-b border-slate-800"></div>
 
             {/* Danh sách thành viên */}
             <div>

@@ -349,7 +349,7 @@ const RecentActivities = () => {
             <div className="max-w-4xl">
                 <h1 className="flex items-center gap-2 mb-6 text-2xl font-semibold">
                     <span className="text-xl">☰</span>
-                    Hoạt động
+                    Hoạt động gần đây
                 </h1>
 
                 {loading && activities.length === 0 ? (

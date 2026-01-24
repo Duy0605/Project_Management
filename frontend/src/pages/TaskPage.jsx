@@ -521,6 +521,7 @@ const TaskPage = () => {
                                 </p>
                             </div>
                         ) : null}
+                        
                     </DragOverlay>
                 </DndContext>
             </div>

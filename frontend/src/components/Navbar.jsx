@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { useNavigate, NavLink } from "react-router-dom";
-import { FiUser, FiLogOut, FiActivity, FiSettings } from "react-icons/fi";
+import { FiUser, FiLogOut, FiActivity, FiLock } from "react-icons/fi";
 import { Bot } from "lucide-react";
 import { useAuth } from "../context/AuthContext";
 import { avatar } from "../utils/avatar";
@@ -105,13 +105,13 @@ const Navbar = () => {
 
                         <button
                             onClick={() => {
-                                navigate("/settings");
+                                navigate("/change-password");
                                 setShowUserMenu(false);
                             }}
                             className="flex items-center w-full gap-3 px-4 py-2 text-left text-gray-100 transition hover:bg-slate-700"
                         >
-                            <FiSettings />
-                            <span>Cài đặt</span>
+                            <FiLock />
+                            <span>Đổi mật khẩu</span>
                         </button>
 
                         <hr className="my-2 border-slate-700" />
