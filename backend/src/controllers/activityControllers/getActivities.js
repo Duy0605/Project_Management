@@ -41,7 +41,7 @@ const getActivities = asyncHandler(async (req, res) => {
 
         if (activity.column) {
             console.log("Activity column:", activity.column);
-            data.columnName = activity.column.title;
+            data.columnTitle = activity.column.title;
             data.columnId = activity.column._id;
         } else {
             console.log(
@@ -61,9 +61,28 @@ const getActivities = asyncHandler(async (req, res) => {
 
         if (activity.metadata) {
             data.metadata = activity.metadata;
-            // Thêm columnName từ metadata nếu có
-            if (activity.metadata.columnName) {
-                data.columnName = activity.metadata.columnName;
+
+            // board
+            if (activity.metadata.boardName) {
+                data.boardName = activity.metadata.boardName;
+            }
+
+            // column
+            if (activity.metadata.columnTitle) {
+                data.columnTitle = activity.metadata.columnTitle;
+            }
+
+            if (activity.metadata.oldColumnTitle) {
+                data.oldColumnTitle = activity.metadata.oldColumnTitle;
+            }
+
+            if (activity.metadata.newColumnTitle) {
+                data.newColumnTitle = activity.metadata.newColumnTitle;
+            }
+
+            // task
+            if (activity.metadata.taskTitle) {
+                data.taskName = activity.metadata.taskTitle;
             }
         }
 

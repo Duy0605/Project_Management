@@ -15,7 +15,11 @@ const createTask = asyncHandler(async (req, res) => {
         });
     }
 
-    // Tính order cho task mới (thêm vào cuối cột)
+    // lưu tên cột, bảng
+    const columnTitle = req.column?.title;
+    const boardName = req.board?.name;
+
+    // Tính order cho task mới
     const lastTask = await Task.findOne({ columnId })
         .sort({ order: -1 })
         .select("order");
@@ -30,11 +34,16 @@ const createTask = asyncHandler(async (req, res) => {
         order,
     });
 
-    // Log activity
+    // Log activity 
     await createActivity(req.user._id, "created_task", {
         board: boardId,
         task: newTask._id,
         column: columnId,
+        metadata: {
+            taskTitle: newTask.title,
+            columnTitle,
+            boardName,
+        },
     });
 
     res.status(201).json({

@@ -1,5 +1,6 @@
 const asyncHandler = require("../../loaders/asyncHandler");
 const Task = require("../../models/TaskModel");
+const Column = require("../../models/ColumnModel");
 const createActivity = require("../activityControllers/createActivity");
 
 // xóa task
@@ -14,26 +15,36 @@ const deleteTask = asyncHandler(async (req, res) => {
             message: "Task không tồn tại",
         });
     }
-    // lưu order của task cần xóa
+
+    // lưu thông tin trước khi xóa
     const deletedOrder = task.order;
     const boardId = task.boardId;
-    const deletedTaskId = task._id;
     const columnId = task.columnId;
+    const taskTitle = task.title;
+
+    // lấy tên cột, bảng 
+    const column = await Column.findById(columnId);
+    const columnTitle = column ? column.title : "";
+    const boardName = req.board ? req.board.name : "";
 
     // xóa task
     await task.deleteOne();
 
-    // cập nhật lại order của các task còn lại trong cùng cột
+    // cập nhật lại order các task còn lại trong cột
     await Task.updateMany(
-        { columnId: task.columnId, order: { $gt: deletedOrder } },
-        { $inc: { order: -1 } },
+        { columnId, order: { $gt: deletedOrder } },
+        { $inc: { order: -1 } }
     );
 
     // Log activity
     await createActivity(req.user._id, "deleted_task", {
         board: boardId,
         column: columnId,
-        metadata: { taskId: deletedTaskId.toString() },
+        metadata: {
+            taskTitle,
+            columnTitle,
+            boardName,
+        },
     });
 
     res.status(200).json({

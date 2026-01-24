@@ -28,7 +28,7 @@ const createColumn = asyncHandler(async (req, res) => {
     // Log activity
     await createActivity(req.user._id, "created_column", {
         board: boardId,
-        metadata: { columnName: newColumn.title },
+        metadata: { columnTitle: newColumn.title },
     });
 
     res.status(201).json({

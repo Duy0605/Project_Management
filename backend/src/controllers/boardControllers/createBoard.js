@@ -1,6 +1,5 @@
 const asyncHandler = require("../../loaders/asyncHandler");
 const Board = require("../../models/BoardModel");
-const Column = require("../../models/ColumnModel");
 const BoardMember = require("../../models/BoardMember");
 const createActivity = require("../activityControllers/createActivity");
 
@@ -14,7 +13,7 @@ const createBoard = asyncHandler(async (req, res) => {
         });
     }
 
-    // Tạo board mới
+    // tạo board mới
     const board = await Board.create({
         name: name.trim(),
         description: description || "",
@@ -22,22 +21,32 @@ const createBoard = asyncHandler(async (req, res) => {
         ownerId: req.user._id,
     });
 
-    // Tự động thêm owner vào bảng BoardMember
+    // thêm owner vào board members
     await BoardMember.create({
         boardId: board._id,
         userId: req.user._id,
         role: "owner",
     });
 
-    // Log activity
+    // log activity
     await createActivity(req.user._id, "created_board", {
         board: board._id,
+        metadata: {
+            boardName: board.name,
+        },
     });
 
-    res.status(200).json({
+    res.status(201).json({
         success: true,
         message: "Tạo bảng thành công",
-        data: board,
+        data: {
+            id: board._id,
+            name: board.name,
+            description: board.description,
+            background: board.background,
+            ownerId: board.ownerId,
+            createdAt: board.createdAt,
+        },
     });
 });
 

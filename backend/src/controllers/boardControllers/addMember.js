@@ -15,10 +15,10 @@ const addMember = asyncHandler(async (req, res) => {
         });
     }
 
-    // Tìm user theo email
+    // tìm user theo email
     const user = await User.findOne({
         email: email.toLowerCase().trim(),
-    }).select("_id name email avatar");
+    }).select("_id name email avatar avatarColor");
 
     if (!user) {
         return res.status(404).json({
@@ -27,7 +27,7 @@ const addMember = asyncHandler(async (req, res) => {
         });
     }
 
-    // Kiểm tra user đã là thành viên của board chưa
+    // kiểm tra user đã là thành viên chưa
     const existingMember = await BoardMember.findOne({
         boardId,
         userId: user._id,
@@ -40,7 +40,7 @@ const addMember = asyncHandler(async (req, res) => {
         });
     }
 
-    // Thêm user vào board với vai trò 'member'
+    // thêm thành viên
     const newMember = await BoardMember.create({
         boardId,
         userId: user._id,
@@ -49,10 +49,15 @@ const addMember = asyncHandler(async (req, res) => {
 
     await newMember.populate("userId", "name email avatar avatarColor");
 
-    // Log activity
+    // log activity
     await createActivity(req.user._id, "added_member", {
         board: boardId,
         targetUser: user._id,
+        metadata: {
+            memberName: user.name,
+            memberEmail: user.email,
+            boardName: req.board?.name,
+        },
     });
 
     res.status(201).json({

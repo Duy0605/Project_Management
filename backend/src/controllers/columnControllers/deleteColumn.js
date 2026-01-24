@@ -29,7 +29,7 @@ const deleteColumn = asyncHandler(async (req, res) => {
     // Log activity
     await createActivity(req.user._id, "deleted_column", {
         board: boardId,
-        metadata: { columnName: columnTitle },
+        metadata: { columnTitle: columnTitle },
     });
 
     res.status(200).json({

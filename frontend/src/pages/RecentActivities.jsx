@@ -39,7 +39,10 @@ const RecentActivities = () => {
     };
 
     const renderActivityText = (activity) => {
-        const { action, taskName, boardName, targetUser } = activity;
+        const { action, targetUser } = activity;
+        const taskTitle = activity.taskName || activity.metadata?.taskTitle;
+        const boardName = activity.boardName || activity.metadata?.boardName;
+        const columnTitle = activity.columnTitle || activity.metadata?.columnTitle;
 
         switch (action) {
             case "created_board":
@@ -47,7 +50,7 @@ const RecentActivities = () => {
                     <>
                         đã tạo bảng{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {boardName}
+                            {boardName || "một bảng"}
                         </span>
                     </>
                 );
@@ -56,7 +59,7 @@ const RecentActivities = () => {
                     <>
                         đã đóng bảng{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {boardName}
+                            {boardName || "một bảng"}
                         </span>
                     </>
                 );
@@ -65,7 +68,7 @@ const RecentActivities = () => {
                     <>
                         đã mở lại bảng{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {boardName}
+                            {boardName || "một bảng"}
                         </span>
                     </>
                 );
@@ -74,7 +77,7 @@ const RecentActivities = () => {
                     <>
                         đã xóa bảng{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {boardName}
+                            {boardName || "một bảng"}
                         </span>
                     </>
                 );
@@ -83,7 +86,7 @@ const RecentActivities = () => {
                     <>
                         đã cập nhật bảng{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {boardName}
+                            {boardName || "một bảng"}
                         </span>
                     </>
                 );
@@ -92,43 +95,41 @@ const RecentActivities = () => {
                     <>
                         đã tạo cột{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {activity.columnName}
+                            {columnTitle || "một cột"}
+                        </span>{" "}
+                        trên bảng{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {boardName || "một bảng"}
                         </span>
-                        {boardName && (
-                            <>
-                                {" "}
-                                trên bảng{" "}
-                                <span className="text-blue-400 cursor-pointer hover:underline">
-                                    {boardName}
-                                </span>
-                            </>
-                        )}
                     </>
                 );
             case "updated_column":
                 return (
                     <>
-                        đã cập nhật cột{" "}
+                        đã đổi tên cột{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {activity.columnName}
+                            {activity.oldColumnTitle || "một cột"}
+                        </span>{" "}
+                        thành{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {activity.newColumnTitle || "một cột"}
+                        </span>{" "}
+                        trên bảng{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {boardName || "một bảng"}
                         </span>
-                        {boardName && (
-                            <>
-                                {" "}
-                                trên bảng{" "}
-                                <span className="text-blue-400 cursor-pointer hover:underline">
-                                    {boardName}
-                                </span>
-                            </>
-                        )}
                     </>
                 );
             case "deleted_column":
                 return (
                     <>
-                        đã xóa cột trên bảng{" "}
+                        đã xóa cột{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {boardName}
+                            {columnTitle || "một cột"}
+                        </span>{" "}
+                        trên bảng{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {boardName || "một bảng"}
                         </span>
                     </>
                 );
@@ -137,26 +138,16 @@ const RecentActivities = () => {
                     <>
                         đã tạo thẻ{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {taskName}
+                            {taskTitle || "một thẻ"}
+                        </span>{" "}
+                        trên cột{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {columnTitle || "một cột"}
+                        </span>{" "}
+                        của bảng{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {boardName || "một bảng"}
                         </span>
-                        {activity.columnName && (
-                            <>
-                                {" "}
-                                trên cột{" "}
-                                <span className="text-blue-400 cursor-pointer hover:underline">
-                                    {activity.columnName}
-                                </span>
-                            </>
-                        )}
-                        {boardName && (
-                            <>
-                                {" "}
-                                của bảng{" "}
-                                <span className="text-blue-400 cursor-pointer hover:underline">
-                                    {boardName}
-                                </span>
-                            </>
-                        )}
                     </>
                 );
             case "updated_task":
@@ -164,50 +155,33 @@ const RecentActivities = () => {
                     <>
                         đã cập nhật thẻ{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {taskName}
+                            {taskTitle || "một thẻ"}
+                        </span>{" "}
+                        trên cột{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {columnTitle || "một cột"}
+                        </span>{" "}
+                        của bảng{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {boardName || "một bảng"}
                         </span>
-                        {activity.columnName && (
-                            <>
-                                {" "}
-                                trên cột{" "}
-                                <span className="text-blue-400 cursor-pointer hover:underline">
-                                    {activity.columnName}
-                                </span>
-                            </>
-                        )}
-                        {boardName && (
-                            <>
-                                {" "}
-                                của bảng{" "}
-                                <span className="text-blue-400 cursor-pointer hover:underline">
-                                    {boardName}
-                                </span>
-                            </>
-                        )}
                     </>
                 );
             case "deleted_task":
                 return (
                     <>
-                        đã xóa thẻ
-                        {activity.columnName && (
-                            <>
-                                {" "}
-                                trên cột{" "}
-                                <span className="text-blue-400 cursor-pointer hover:underline">
-                                    {activity.columnName}
-                                </span>
-                            </>
-                        )}
-                        {boardName && (
-                            <>
-                                {" "}
-                                của bảng{" "}
-                                <span className="text-blue-400 cursor-pointer hover:underline">
-                                    {boardName}
-                                </span>
-                            </>
-                        )}
+                        đã xóa thẻ{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {taskTitle || "một thẻ"}
+                        </span>{" "}
+                        trên cột{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {columnTitle || "một cột"}
+                        </span>{" "}
+                        của bảng{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {boardName || "một bảng"}
+                        </span>
                     </>
                 );
             case "completed_task":
@@ -215,12 +189,17 @@ const RecentActivities = () => {
                     <>
                         đã đánh dấu thẻ{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {taskName}
+                            {taskTitle || "một thẻ"}
                         </span>{" "}
-                        là hoàn tất trên bảng{" "}
+                        trên cột{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {boardName}
+                            {columnTitle || "một cột"}
+                        </span>{" "}
+                        của bảng{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {boardName || "một bảng"}
                         </span>
+                        là hoàn tất{" "}
                     </>
                 );
             case "uncompleted_task":
@@ -228,12 +207,17 @@ const RecentActivities = () => {
                     <>
                         đã đánh dấu thẻ{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {taskName}
+                            {taskTitle || "một thẻ"}
                         </span>{" "}
-                        là chưa hoàn tất trên bảng{" "}
+                        trên cột{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {boardName}
+                            {columnTitle || "một cột"}
+                        </span>{" "}
+                        của bảng{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {boardName || "một bảng"}
                         </span>
+                        là chưa hoàn tất
                     </>
                 );
             case "assigned_task":
@@ -241,26 +225,16 @@ const RecentActivities = () => {
                     <>
                         đã tham gia thẻ{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {taskName}
+                            {taskTitle || "một thẻ"}
+                        </span>{" "}
+                        trên cột{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {columnTitle || "một cột"}
+                        </span>{" "}
+                        của bảng{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {boardName || "một bảng"}
                         </span>
-                        {activity.columnName && (
-                            <>
-                                {" "}
-                                trên cột{" "}
-                                <span className="text-blue-400 cursor-pointer hover:underline">
-                                    {activity.columnName}
-                                </span>
-                            </>
-                        )}
-                        {boardName && (
-                            <>
-                                {" "}
-                                của bảng{" "}
-                                <span className="text-blue-400 cursor-pointer hover:underline">
-                                    {boardName}
-                                </span>
-                            </>
-                        )}
                     </>
                 );
             case "unassigned_task":
@@ -268,26 +242,16 @@ const RecentActivities = () => {
                     <>
                         đã rời khỏi thẻ{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {taskName}
+                            {taskTitle || "một thẻ"}
+                        </span>{" "}
+                        trên cột{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {columnTitle || "một cột"}
+                        </span>{" "}
+                        của bảng{" "}
+                        <span className="text-blue-400 cursor-pointer hover:underline">
+                            {boardName || "một bảng"}
                         </span>
-                        {activity.columnName && (
-                            <>
-                                {" "}
-                                trên cột{" "}
-                                <span className="text-blue-400 cursor-pointer hover:underline">
-                                    {activity.columnName}
-                                </span>
-                            </>
-                        )}
-                        {boardName && (
-                            <>
-                                {" "}
-                                của bảng{" "}
-                                <span className="text-blue-400 cursor-pointer hover:underline">
-                                    {boardName}
-                                </span>
-                            </>
-                        )}
                     </>
                 );
             case "added_member":
@@ -299,7 +263,7 @@ const RecentActivities = () => {
                         </span>{" "}
                         vào bảng{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {boardName}
+                            {boardName || "một bảng"}
                         </span>
                     </>
                 );
@@ -312,7 +276,7 @@ const RecentActivities = () => {
                         </span>{" "}
                         khỏi bảng{" "}
                         <span className="text-blue-400 cursor-pointer hover:underline">
-                            {boardName}
+                            {boardName || "một bảng"}
                         </span>
                     </>
                 );
