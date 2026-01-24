@@ -13,6 +13,7 @@ import MemberPage from "./pages/MemberPage";
 import TaskPage from "./pages/TaskPage";
 import ProfilePage from "./pages/ProfilePage";
 import RecentActivities from "./pages/RecentActivities";
+import ResetPasswordPage from "./pages/ResetPasswordPage";
 
 import "./index.css";
 
@@ -75,6 +76,10 @@ function App() {
                         <ForgotPasswordPage />
                     )
                 }
+            />
+            <Route
+                path="/reset-password/:token"
+                element={<ResetPasswordPage />}
             />
             {/* Các trang chính */}
             <Route

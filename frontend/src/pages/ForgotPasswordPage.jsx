@@ -1,15 +1,34 @@
 import { Mail, ArrowLeft, Bot, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import forgotPassword from "../services/authService";
 
 const ForgotPasswordPage = () => {
     const navigate = useNavigate();
     const [success, setSuccess] = useState("form");
     const [email, setEmail] = useState("");
 
-    const handleResetPassword = () => {
-        if (!email) return;
-        setSuccess("success");
+    const [loading, setLoading] = useState(false);
+    const [error, setError] = useState("");
+
+    const handleResetPassword = async () => {
+        if (!email) {
+            setError("Vui lòng nhập email");
+            return;
+        }
+
+        setLoading(true);
+        setError("");
+
+        const result = await forgotPassword.requestPasswordReset(email);
+
+        setLoading(false);
+
+        if (result.success) {
+            setSuccess("success");
+        } else {
+            setError(result.message || "Có lỗi xảy ra");
+        }
     };
 
     return (
@@ -61,9 +80,12 @@ const ForgotPasswordPage = () => {
 
                         <button
                             onClick={handleResetPassword}
-                            className="w-full py-2 font-semibold text-white transition rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90"
+                            disabled={loading}
+                            className="w-full py-2 font-semibold text-white transition rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 hover:opacity-90 disabled:opacity-60 disabled:cursor-not-allowed"
                         >
-                            Đặt lại mật khẩu
+                            {loading
+                                ? "Đang gửi..."
+                                : "Gửi hướng dẫn đặt lại mật khẩu"}
                         </button>
 
                         <p className="mt-6 text-sm text-center text-gray-500">
@@ -85,7 +107,8 @@ const ForgotPasswordPage = () => {
                             Quên mật khẩu?
                         </h2>
                         <p className="mb-6 text-sm text-center text-gray-500">
-                            Đừng lo, chúng tôi sẽ gửi cho bạn hướng dẫn đặt lại mật khẩu qua email.
+                            Đừng lo, chúng tôi sẽ gửi cho bạn hướng dẫn đặt lại
+                            mật khẩu qua email.
                         </p>
 
                         {/* Check icon */}

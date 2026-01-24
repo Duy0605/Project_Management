@@ -21,7 +21,7 @@ axiosInstance.interceptors.request.use(
     },
     (error) => {
         return Promise.reject(error);
-    }
+    },
 );
 // interceptor để xử lý response và lỗi từ server
 axiosInstance.interceptors.response.use(
@@ -32,7 +32,18 @@ axiosInstance.interceptors.response.use(
     // Nếu có lỗi, kiểm tra nếu là lỗi xác thực (401) thì thử làm mới token
     async (error) => {
         const originalRequest = error.config;
-        if (error.response?.status === 401 && !originalRequest._retry) {
+
+        const isAuthRoute =
+            originalRequest.url.includes("/auth/login") ||
+            originalRequest.url.includes("/auth/register") ||
+            originalRequest.url.includes("/auth/forgot-password") ||
+            originalRequest.url.includes("/auth/reset-password");
+
+        if (
+            error.response?.status === 401 &&
+            !originalRequest._retry &&
+            !isAuthRoute
+        ) {
             originalRequest._retry = true;
             // Làm mới token
             try {
@@ -42,7 +53,7 @@ axiosInstance.interceptors.response.use(
                         "http://localhost:5000/api"
                     }/auth/refresh-token`,
                     {},
-                    { withCredentials: true }
+                    { withCredentials: true },
                 );
                 // Lưu lại token mới và cập nhật header của request gốc
                 const { accessToken } = response.data.data;
@@ -58,7 +69,7 @@ axiosInstance.interceptors.response.use(
             }
         }
         return Promise.reject(error);
-    }
+    },
 );
 
 export default axiosInstance;

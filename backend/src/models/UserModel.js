@@ -23,6 +23,13 @@ const userSchema = new mongoose.Schema(
             select: false,
         },
 
+        resetPasswordToken: {
+            type: String,
+        },
+        resetPasswordExpire: {
+            type: Date,
+        },
+
         avatarColor: {
             type: String,
             default: "bg-gradient-to-br from-blue-500 to-blue-700",
