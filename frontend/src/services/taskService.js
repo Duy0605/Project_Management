@@ -135,6 +135,22 @@ const taskService = {
             };
         }
     },
+    // Thêm checklist vào task
+    addChecklist: async (taskId, isCompleted) => {
+        try {
+            const response = await api.post(`/tasks/${taskId}/checklist`, {
+                isCompleted,
+            });
+            return response.data;
+        } catch (error) {
+            return {
+                success: false,
+                message:
+                    error.response?.data?.message ||
+                    "Lỗi khi cập nhật checklist",
+            };
+        }
+    },
 };
 
 export default taskService;
