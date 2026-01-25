@@ -1,20 +1,30 @@
 import { useEffect, useState, useRef } from "react";
 import { X } from "lucide-react";
+import boardService from "../services/boardService.js";
 
 const DetailBoard = ({ open, onClose, board, onSave }) => {
     const modalRef = useRef(null);
 
+    const [boardDetail, setBoardDetail] = useState(null);
     const [name, setName] = useState("");
     const [description, setDescription] = useState("");
     const [aiEnabled, setAiEnabled] = useState(false);
 
-    // Đồng bộ dữ liệu khi mở popup
+    // Lấy chi tiết board khi mở modal
     useEffect(() => {
-        if (open && board) {
-            setName(board.name || "");
-            setDescription(board.description || "");
-            setAiEnabled(!!board.aiEnabled);
-        }
+        if (!open || !board?.id) return;
+
+        const fetchBoardDetail = async () => {
+            const res = await boardService.getBoardById(board.id);
+            if (res.success) {
+                setBoardDetail(res.data);
+                setName(res.data.name || "");
+                setDescription(res.data.description || "");
+                setAiEnabled(!!res.data.aiEnabled);
+            }
+        };
+
+        fetchBoardDetail();
     }, [open, board]);
 
     // Click ra ngoài thì đóng
@@ -78,7 +88,7 @@ const DetailBoard = ({ open, onClose, board, onSave }) => {
                 <div className="mb-4 text-sm text-gray-400">
                     <span className="mr-1">Quản trị viên:</span>
                     <span className="font-medium text-gray-100">
-                        {board?.ownerId?.name}
+                        {boardDetail?.ownerId?.name || "Đang tải..."}
                     </span>
                 </div>
 

@@ -21,7 +21,7 @@ const getBoardById = asyncHandler(async (req, res) => {
     // Lấy thông tin board
     const board = await Board.findById(boardId).populate(
         "ownerId",
-        "name email"
+        "name email",
     );
 
     if (!board) {
@@ -45,8 +45,11 @@ const getBoardById = asyncHandler(async (req, res) => {
             name: board.name,
             description: board.description,
             background: board.background,
-            ownerId: board.ownerId,
-            isAI: board.isAI,
+            ownerId: {
+                id: board.ownerId._id,
+                name: board.ownerId.name,
+                email: board.ownerId.email,
+            },
             createdAt: board.createdAt,
             updatedAt: board.updatedAt,
             role: boardMember.role,
