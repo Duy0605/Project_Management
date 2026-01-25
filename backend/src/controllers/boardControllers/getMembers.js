@@ -21,7 +21,7 @@ const getMembers = asyncHandler(async (req, res) => {
 
     // lấy danh sách thành viên của board
     const members = await BoardMember.find({ boardId })
-        .populate("userId", "name email avatar avatarColor")
+        .populate("userId", "name email avatarColor")
         .sort({ role: 1, createdAt: 1 });
 
     res.status(200).json({

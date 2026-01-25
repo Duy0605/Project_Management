@@ -151,6 +151,28 @@ const boardService = {
         }
     },
 
+    removeMember: async (boardId, memberId) => {
+        try {
+            const response = await axiosInstance.delete(
+                `/boards/${boardId}/members/${memberId}`,
+            );
+            return {
+                success: true,
+                data: response.data.data,
+                message:
+                    response.data.message ||
+                    "Xóa thành viên khỏi bảng thành công",
+            };
+        } catch (error) {
+            return {
+                success: false,
+                message:
+                    error.response?.data?.message ||
+                    "Xóa thành viên khỏi bảng thất bại",
+            };
+        }
+    },
+
     // Lấy danh sách boards chung với user khác
     getCommonBoards: async (userId) => {
         try {

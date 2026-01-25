@@ -1,15 +1,15 @@
 import { useLayoutEffect, useRef, useEffect, useState } from "react";
 import { Info, UserPlus, Archive } from "lucide-react";
 import DetailBoard from "./DetailBoard";
-import AddMember from "./AddMember";
 import CloseBoard from "./AlertCloseBoard";
 import boardService from "../services/boardService";
+import MemberPopup from "./MemberPopup";
 
 const BoardMenu = ({ open, onClose, board, buttonRef, onBoardUpdate }) => {
     const menuRef = useRef(null);
     const [menuStyle, setMenuStyle] = useState({});
     const [showDetail, setShowDetail] = useState(false);
-    const [showAddMember, setShowAddMember] = useState(false);
+    const [showMembers, setShowMembers] = useState(false);
     const [showCloseConfirm, setShowCloseConfirm] = useState(false);
 
     // Tính vị trí menu
@@ -76,29 +76,34 @@ const BoardMenu = ({ open, onClose, board, buttonRef, onBoardUpdate }) => {
                         <span>Xem thông tin bảng</span>
                     </button>
 
+                    <div className="border-t border-gray-700 " />
+
                     <button
                         onClick={() => {
-                            setShowAddMember(true);
+                            setShowMembers(true);
                             onClose();
                         }}
                         className="flex items-center w-full gap-3 px-4 py-2 text-sm hover:bg-gray-700"
                     >
                         <UserPlus size={18} />
-                        <span>Thêm thành viên</span>
+                        <span>Thành viên</span>
                     </button>
 
-                    <div className="my-1 border-t border-gray-700" />
-
-                    <button
-                        onClick={() => {
-                            setShowCloseConfirm(true);
-                            onClose();
-                        }}
-                        className="flex items-center w-full gap-3 px-4 py-2 text-sm text-red-400 hover:bg-gray-700"
-                    >
-                        <Archive size={18} />
-                        <span>Đóng bảng</span>
-                    </button>
+                    {board?.role === "owner" && (
+                        <>
+                            <div className="my-1 border-t border-gray-700" />
+                            <button
+                                onClick={() => {
+                                    setShowCloseConfirm(true);
+                                    onClose();
+                                }}
+                                className="flex items-center w-full gap-3 px-4 py-2 text-sm text-red-400 hover:bg-gray-700"
+                            >
+                                <Archive size={18} />
+                                <span>Đóng bảng</span>
+                            </button>
+                        </>
+                    )}
                 </div>
             )}
             <DetailBoard
@@ -126,30 +131,16 @@ const BoardMenu = ({ open, onClose, board, buttonRef, onBoardUpdate }) => {
                     }
                 }}
             />
-            <AddMember
-                open={showAddMember}
-                onClose={() => setShowAddMember(false)}
-                onAdd={async (email) => {
-                    try {
-                        const boardId = board._id || board.id;
-                        const result = await boardService.addMember(
-                            boardId,
-                            email,
-                        );
-                        if (result.success) {
-                            alert(
-                                result.message || "Thêm thành viên thành công!",
-                            );
-                            onBoardUpdate?.();
-                        } else {
-                            alert(result.message || "Thêm thành viên thất bại");
-                        }
-                    } catch (error) {
-                        console.error("Add member error:", error);
-                        alert("Có lỗi xảy ra khi thêm thành viên");
-                    }
+
+            <MemberPopup
+                open={showMembers}
+                onClose={() => setShowMembers(false)}
+                board={board}
+                onMemberChange={() => {
+                    onBoardUpdate?.();
                 }}
             />
+
             <CloseBoard
                 open={showCloseConfirm}
                 onClose={() => setShowCloseConfirm(false)}
