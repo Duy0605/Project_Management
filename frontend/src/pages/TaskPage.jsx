@@ -47,10 +47,6 @@ const TaskPage = () => {
 
         const activeId = active.id.toString();
 
-        const activeColumn = displayColumns.find(
-            (col) => (col._id || col.id).toString() === activeId,
-        );
-
         // kiểm tra là task hay column
         const isColumn = columns.some(
             (col) => (col._id || col.id).toString() === activeId,
@@ -79,185 +75,104 @@ const TaskPage = () => {
     const handleDragEnd = async (event) => {
         const { active, over } = event;
 
-        // Reset states
         setActiveTask(null);
-        const currentActiveType = activeType;
+        const type = activeType;
         setActiveType(null);
 
         if (!over) return;
 
         const activeId = active.id.toString();
         const overId = over.id.toString();
-
         if (activeId === overId) return;
 
-        if (currentActiveType === "column") {
-            const prevColumns = columns;
-            const oldIndex = prevColumns.findIndex(
+        if (type === "column") {
+            const oldIndex = columns.findIndex(
                 (c) => (c._id || c.id).toString() === activeId,
             );
-            const newIndex = prevColumns.findIndex(
+            const newIndex = columns.findIndex(
                 (c) => (c._id || c.id).toString() === overId,
             );
 
-            const newColumns = arrayMove(prevColumns, oldIndex, newIndex);
-            setColumns(newColumns);
+            if (oldIndex === -1 || newIndex === -1) return;
 
-            try {
-                const result = await columnService.reorderColumns(
-                    boardId,
-                    activeId,
-                    newIndex,
-                );
-                if (!result.success) setColumns(prevColumns);
-            } catch {
-                setColumns(prevColumns);
-                alert("Sắp xếp lại cột thất bại");
+            const newCols = arrayMove(columns, oldIndex, newIndex);
+            setColumns(newCols);
+
+            const result = await columnService.reorderColumns(
+                boardId,
+                activeId,
+                newIndex,
+            );
+
+            if (!result.success) {
+                const colRes = await columnService.getColumns(boardId);
+                if (colRes.success) setColumns(colRes.data);
             }
             return;
         }
 
-        if (currentActiveType === "task") {
-            // Tìm task đang kéo
-            let activeTask = null;
-            let activeColumnIndex = -1;
+        let sourceCol = null;
+        let sourceColIndex = -1;
 
-            for (let i = 0; i < columns.length; i++) {
-                const task = (columns[i].tasks || []).find(
+        for (let i = 0; i < columns.length; i++) {
+            if (
+                columns[i].tasks?.some(
                     (t) => (t._id || t.id).toString() === activeId,
-                );
-                if (task) {
-                    activeTask = task;
-                    activeColumnIndex = i;
-                    break;
-                }
+                )
+            ) {
+                sourceCol = columns[i];
+                sourceColIndex = i;
+                break;
             }
+        }
+        if (!sourceCol) return;
 
-            if (!activeTask || activeColumnIndex === -1) return;
+        let targetCol = null;
+        let targetIndex = 0;
 
-            // Tìm column đích và vị trí
-            let overColumnIndex = -1;
-            let overTaskIndex = -1;
-
-            // Check nếu drop vào task
-            for (let i = 0; i < columns.length; i++) {
-                const taskIndex = (columns[i].tasks || []).findIndex(
-                    (t) => (t._id || t.id).toString() === overId,
-                );
-                if (taskIndex !== -1) {
-                    overColumnIndex = i;
-                    overTaskIndex = taskIndex;
-                    break;
-                }
+        for (let i = 0; i < columns.length; i++) {
+            const taskIndex = columns[i].tasks?.findIndex(
+                (t) => (t._id || t.id).toString() === overId,
+            );
+            if (taskIndex !== -1) {
+                targetCol = columns[i];
+                targetIndex = taskIndex;
+                break;
             }
+        }
 
-            // Check nếu drop vào column rỗng
-            if (overColumnIndex === -1) {
-                overColumnIndex = columns.findIndex(
-                    (c) => (c._id || c.id).toString() === overId,
-                );
-                if (overColumnIndex !== -1) {
-                    overTaskIndex = columns[overColumnIndex].tasks?.length || 0;
-                }
+        if (!targetCol) {
+            targetCol = columns.find(
+                (c) => (c._id || c.id).toString() === overId,
+            );
+            targetIndex = targetCol?.tasks?.length || 0;
+        }
+
+        if (!targetCol) return;
+
+        const sourceColumnId = sourceCol._id || sourceCol.id;
+        const targetColumnId = targetCol._id || targetCol.id;
+
+        try {
+            // kéo trong cùng cột
+            if (sourceColumnId === targetColumnId) {
+                await taskService.reorderTask(activeId, targetIndex);
+                await refetchColumnTasks(sourceColumnId);
             }
-
-            if (overColumnIndex === -1) return;
-
-            const activeColumnId = (
-                columns[activeColumnIndex]._id || columns[activeColumnIndex].id
-            ).toString();
-            const overColumnId = (
-                columns[overColumnIndex]._id || columns[overColumnIndex].id
-            ).toString();
-
-            if (activeColumnIndex === overColumnIndex) {
-                const columnTasks = [
-                    ...(columns[activeColumnIndex].tasks || []),
-                ];
-                const oldIndex = columnTasks.findIndex(
-                    (t) => (t._id || t.id).toString() === activeId,
-                );
-
-                if (oldIndex === overTaskIndex) return;
-
-                // di chuyển trong cùng cột
-                const [movedTask] = columnTasks.splice(oldIndex, 1);
-                columnTasks.splice(overTaskIndex, 0, movedTask);
-
-                const newColumns = [...columns];
-                newColumns[activeColumnIndex] = {
-                    ...newColumns[activeColumnIndex],
-                    tasks: columnTasks.map((t, idx) => ({ ...t, order: idx })),
-                };
-                setColumns(newColumns);
-
-                // Gọi API reorder
-                try {
-                    const result = await taskService.reorderTask(
-                        activeTask._id || activeTask.id,
-                        overTaskIndex,
-                    );
-                    if (!result.success) {
-                        alert(result.message || "Sắp xếp lại task thất bại");
-                        // Rollback: fetch lại data
-                        window.location.reload();
-                    }
-                } catch (error) {
-                    console.error("Reorder task error:", error);
-                    window.location.reload();
-                }
-            }
-            // di chuyển giữa các cột
+            // kéo sang cột khác
             else {
-                const sourceColumnTasks = [
-                    ...(columns[activeColumnIndex].tasks || []),
-                ];
-                const destColumnTasks = [
-                    ...(columns[overColumnIndex].tasks || []),
-                ];
-
-                const sourceIndex = sourceColumnTasks.findIndex(
-                    (t) => (t._id || t.id).toString() === activeId,
+                await taskService.moveTask(
+                    activeId,
+                    targetColumnId,
+                    targetIndex,
                 );
-
-                // di chuyển giữa các cột
-                const [movedTask] = sourceColumnTasks.splice(sourceIndex, 1);
-                movedTask.columnId = overColumnId;
-                destColumnTasks.splice(overTaskIndex, 0, movedTask);
-
-                const newColumns = [...columns];
-                newColumns[activeColumnIndex] = {
-                    ...newColumns[activeColumnIndex],
-                    tasks: sourceColumnTasks.map((t, idx) => ({
-                        ...t,
-                        order: idx,
-                    })),
-                };
-                newColumns[overColumnIndex] = {
-                    ...newColumns[overColumnIndex],
-                    tasks: destColumnTasks.map((t, idx) => ({
-                        ...t,
-                        order: idx,
-                    })),
-                };
-                setColumns(newColumns);
-
-                // Gọi API move
-                try {
-                    const result = await taskService.moveTask(
-                        activeTask._id || activeTask.id,
-                        overColumnId,
-                        overTaskIndex,
-                    );
-                    if (!result.success) {
-                        alert(result.message || "Di chuyển task thất bại");
-                        window.location.reload();
-                    }
-                } catch (error) {
-                    console.error("Move task error:", error);
-                    window.location.reload();
-                }
+                await Promise.all([
+                    refetchColumnTasks(sourceColumnId),
+                    refetchColumnTasks(targetColumnId),
+                ]);
             }
+        } catch (err) {
+            console.error("Drag task error:", err);
         }
     };
 
@@ -393,6 +308,51 @@ const TaskPage = () => {
         }
     };
 
+    const handleToggleChecklist = async (taskId, isCompleted) => {
+        setColumns((prevColumns) =>
+            prevColumns.map((col) => ({
+                ...col,
+                tasks: (col.tasks || []).map((task) =>
+                    (task._id || task.id).toString() === taskId.toString()
+                        ? { ...task, isCompleted }
+                        : task,
+                ),
+            })),
+        );
+        try {
+            const result = await taskService.addChecklist(taskId, isCompleted);
+            if (!result.success) {
+                alert(result.message || "Cập nhật checklist thất bại");
+            }
+        } catch (error) {
+            console.error("Update checklist error:", error);
+            handleTaskUpdate(
+                columns.find((col) =>
+                    col.tasks?.some(
+                        (t) => (t._id || t.id).toString() === taskId.toString(),
+                    ),
+                )?._id,
+            );
+        }
+    };
+
+    const refetchColumnTasks = async (columnId) => {
+        try {
+            const taskRes = await taskService.getTasks(columnId);
+            if (taskRes.success) {
+                setColumns((prev) =>
+                    prev.map((col) =>
+                        (col._id || col.id).toString() === columnId.toString()
+                            ? { ...col, tasks: taskRes.data }
+                            : col,
+                    ),
+                );
+            }
+        } catch (err) {
+            console.error("Refetch column tasks error:", err);
+        }
+    };
+
     const [showBoardMenu, setShowBoardMenu] = useState(false);
     const boardMenuRef = useRef(null);
 
@@ -453,6 +413,7 @@ const TaskPage = () => {
                                     onUpdateTitle={handleUpdateColumnTitle}
                                     onCreateTask={handleCreateTask}
                                     onTaskUpdate={handleTaskUpdate}
+                                    onToggleChecklist={handleToggleChecklist}
                                 />
                             ))}
 
@@ -521,7 +482,6 @@ const TaskPage = () => {
                                 </p>
                             </div>
                         ) : null}
-                        
                     </DragOverlay>
                 </DndContext>
             </div>

@@ -10,6 +10,7 @@ import {
 } from "@dnd-kit/sortable";
 import SortableTask from "./SortableTask";
 import TaskCard from "./TaskCard";
+import taskService from "../services/taskService";
 
 const TaskColumn = ({
     column,
@@ -95,6 +96,30 @@ const TaskColumn = ({
         setNewTaskTitle("");
     };
 
+    const handleToggleChecklist = async (taskId, isCompleted, columnId) => {
+        // 1. Update UI trước
+        setLocalTasks((prev) =>
+            prev.map((task) =>
+                (task._id || task.id) === taskId
+                    ? { ...task, isCompleted }
+                    : task,
+            ),
+        );
+
+        try {
+            await taskService.addChecklist(taskId, isCompleted);
+        } catch (err) {
+            setLocalTasks((prev) =>
+                prev.map((task) =>
+                    (task._id || task.id) === taskId
+                        ? { ...task, isCompleted: !isCompleted }
+                        : task,
+                ),
+            );
+            alert("Không thể cập nhật checklist");
+        }
+    };
+
     // Click ngoài
     useEffect(() => {
         const handleClickOutside = (event) => {
@@ -168,8 +193,9 @@ const TaskColumn = ({
                         {(column.tasks || []).map((task) => (
                             <SortableTask key={task._id || task.id} task={task}>
                                 <TaskCard
-                                    task={task}
+                                    task={{ ...task, columnId }}
                                     onClick={handleTaskClick}
+                                    onToggleChecklist={handleToggleChecklist}
                                 />
                             </SortableTask>
                         ))}
