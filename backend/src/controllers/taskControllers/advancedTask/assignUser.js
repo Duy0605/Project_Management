@@ -45,6 +45,20 @@ const assignUser = asyncHandler(async (req, res) => {
     task.assignees.push(userId);
     await task.save();
 
+    // lấy task với thông tin assignees đầy đủ
+    const populatedTask = await Task.findById(taskId)
+        .populate("assignees", "name email avatarColor")
+
+    const assignees = populatedTask.assignees.find(
+        (assignee) => assignee._id.toString() === userId.toString(),
+    );
+
+    // Real-time update và Socket.io
+    global.io.to(task.boardId.toString()).emit("user_assigned", {
+        taskId: task._id,
+        assignees,
+    });
+
     // log activity
     await createActivity(req.user._id, "assigned_task", {
         board: task.boardId,

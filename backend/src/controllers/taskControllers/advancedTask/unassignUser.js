@@ -41,6 +41,12 @@ const unassignUser = asyncHandler(async (req, res) => {
 
     await task.save();
 
+    // Real-time update và Socket.io
+    global.io.to(task.boardId.toString()).emit("user_unassigned", {
+        taskId: task._id,
+        userId: userId,
+    });
+
     // log activity
     await createActivity(req.user._id, "unassigned_task", {
         board: task.boardId,

@@ -11,7 +11,7 @@ const DueDateTask = ({
 }) => {
     const [selectedDate, setSelectedDate] = useState(new Date());
     const [selectedTime, setSelectedTime] = useState("00:00");
-    const [reminder, setReminder] = useState("none");
+    // const [reminder, setReminder] = useState("none");
     const [saving, setSaving] = useState(false);
     const [isCustomStartDate, setIsCustomStartDate] = useState(false);
     const [startDate, setStartDate] = useState(new Date());
@@ -141,7 +141,7 @@ const DueDateTask = ({
         setIsCustomStartDate(false);
         setStartDate(new Date());
         setStartTime("00:00");
-        setReminder("none");
+        // setReminder("none");
     };
 
     if (!isOpen) return null;
@@ -315,7 +315,7 @@ const DueDateTask = ({
                 </div>
 
                 {/* Due Date */}
-                <div className="mb-2">
+                <div className="mb-6">
                     <label className="block mb-1.5 text-xs text-gray-400">
                         Ngày hết hạn
                     </label>
@@ -335,7 +335,7 @@ const DueDateTask = ({
                     </div>
                 </div>
 
-                {/* Reminder */}
+                {/* Reminder
                 <div className="mb-3">
                     <label className="block mb-1.5 text-xs text-gray-400">
                         Thiết lập Nhắc nhở
@@ -352,12 +352,12 @@ const DueDateTask = ({
                         <option value="2days">Trước 2 ngày</option>
                         <option value="at-time">Vào thời điểm hết hạn</option>
                     </select>
-                </div>
+                </div> */}
 
-                <p className="mb-2 text-[10px] text-gray-500">
+                {/* <p className="mb-2 text-[10px] text-gray-500">
                     Nhắc nhở sẽ được gửi đến tất cả các thành viên và người theo
                     dõi thẻ này.
-                </p>
+                </p> */}
 
                 {/* Actions */}
                 <div className="flex flex-col gap-1.5">

@@ -377,6 +377,110 @@ const TaskPage = () => {
     }, []);
 
     useEffect(() => {
+        const handleTaskUpdated = ({ taskId, columnId, updates }) => {
+            setColumns((prevColumns) =>
+                prevColumns.map((col) => {
+                    if (
+                        (col._id || col.id).toString() === columnId.toString()
+                    ) {
+                        return {
+                            ...col,
+                            tasks: (col.tasks || []).map((task) =>
+                                (task._id || task.id).toString() ===
+                                taskId.toString()
+                                    ? { ...task, ...updates }
+                                    : task,
+                            ),
+                        };
+                    }
+                    return col;
+                }),
+            );
+        };
+
+        socket.on("task_updated", handleTaskUpdated);
+
+        return () => {
+            socket.off("task_updated", handleTaskUpdated);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleAddChecklist = ({ taskId, isCompleted }) => {
+            setColumns((prevColumns) =>
+                prevColumns.map((col) => ({
+                    ...col,
+                    tasks: (col.tasks || []).map((task) =>
+                        (task._id || task.id).toString() === taskId.toString()
+                            ? { ...task, isCompleted }
+                            : task,
+                    ),
+                })),
+            );
+        };
+
+        socket.on("checklist_updated", handleAddChecklist);
+
+        return () => {
+            socket.off("checklist_updated", handleAddChecklist);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleAssignUser = ({ taskId, assignees }) => {
+            setColumns((prevColumns) =>
+                prevColumns.map((col) => ({
+                    ...col,
+                    tasks: (col.tasks || []).map((task) =>
+                        (task._id || task.id).toString() === taskId.toString()
+                            ? {
+                                  ...task,
+                                  assignees: task.assignees?.some(
+                                      (u) => u._id === assignees._id,
+                                  )
+                                      ? task.assignees
+                                      : [...(task.assignees || []), assignees],
+                              }
+                            : task,
+                    ),
+                })),
+            );
+        };
+
+        socket.on("user_assigned", handleAssignUser);
+        return () => socket.off("user_assigned", handleAssignUser);
+    }, []);
+
+    useEffect(() => {
+        const handleUnassignUser = ({ taskId, userId }) => {
+            setColumns((prevColumns) =>
+                prevColumns.map((col) => ({
+                    ...col,
+                    tasks: (col.tasks || []).map((task) =>
+                        (task._id || task.id).toString() === taskId.toString()
+                            ? {
+                                  ...task,
+                                  assignees: (task.assignees || []).filter(
+                                      (assignee) =>
+                                          (
+                                              assignee._id || assignee.id
+                                          ).toString() !== userId.toString(),
+                                  ),
+                              }
+                            : task,
+                    ),
+                })),
+            );
+        };
+
+        socket.on("user_unassigned", handleUnassignUser);
+
+        return () => {
+            socket.off("user_unassigned", handleUnassignUser);
+        };
+    }, []);
+
+    useEffect(() => {
         const handleClickOutside = (event) => {
             if (
                 addColumnRef.current &&

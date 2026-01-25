@@ -24,6 +24,12 @@ const addChecklist = asyncHandler(async (req, res) => {
     task.isCompleted = newCompletedState;
     await task.save();
 
+    // Real-time update và Socket.io
+    global.io.to(task.boardId.toString()).emit("checklist_updated", {
+        taskId: task._id,
+        isCompleted: task.isCompleted,
+    });
+
     // trả response
     res.status(200).json({
         success: true,
