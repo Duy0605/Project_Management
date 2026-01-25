@@ -481,6 +481,81 @@ const TaskPage = () => {
     }, []);
 
     useEffect(() => {
+        const handleColumnCreated = (newColumn) => {
+            setColumns((prevColumns) => [
+                ...prevColumns,
+                { ...newColumn, tasks: [] },
+            ]);
+        };
+        socket.on("column_created", handleColumnCreated);
+        return () => {
+            socket.off("column_created", handleColumnCreated);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleColumnDeleted = ({ deleteColumnId }) => {
+            setColumns((prevColumns) =>
+                prevColumns.filter(
+                    (col) =>
+                        (col._id || col.id).toString() !==
+                        deleteColumnId.toString(),
+                ),
+            );
+        };
+
+        socket.on("column_deleted", handleColumnDeleted);
+
+        return () => {
+            socket.off("column_deleted", handleColumnDeleted);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleColumnUpdatedTitle = (updatedTitleColumn) => {
+            setColumns((prevColumns) =>
+                prevColumns.map((col) =>
+                    (col._id || col.id).toString() ===
+                    updatedTitleColumn.id.toString()
+                        ? { ...col, title: updatedTitleColumn.title }
+                        : col,
+                ),
+            );
+        };
+
+        socket.on("column_updated", handleColumnUpdatedTitle);
+
+        return () => {
+            socket.off("column_updated", handleColumnUpdatedTitle);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleReorderColumns = ({ columns }) => {
+            if (!Array.isArray(columns)) return;
+
+            setColumns((prev) =>
+                columns.map((col) => {
+                    const oldCol = prev.find(
+                        (c) => (c._id || c.id).toString() === col.id.toString(),
+                    );
+
+                    return {
+                        ...oldCol,
+                        ...col,
+                    };
+                }),
+            );
+        };
+
+        socket.on("columns_reordered", handleReorderColumns);
+
+        return () => {
+            socket.off("columns_reordered", handleReorderColumns);
+        };
+    }, []);
+
+    useEffect(() => {
         const handleClickOutside = (event) => {
             if (
                 addColumnRef.current &&

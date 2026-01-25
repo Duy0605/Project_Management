@@ -25,6 +25,14 @@ const createColumn = asyncHandler(async (req, res) => {
         order,
     });
 
+    // Real-time update và Socket.io
+    global.io.to(boardId.toString()).emit("column_created", {
+        _id: newColumn._id,
+        title: newColumn.title,
+        boardId: newColumn.boardId,
+        order: newColumn.order,
+    });
+
     // Log activity
     await createActivity(req.user._id, "created_column", {
         board: boardId,

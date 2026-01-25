@@ -28,12 +28,12 @@ const reorderColumns = asyncHandler(async (req, res) => {
     if (oldOrder < newOrder) {
         await Column.updateMany(
             { boardId, order: { $gt: oldOrder, $lte: newOrder } },
-            { $inc: { order: -1 } }
+            { $inc: { order: -1 } },
         );
     } else {
         await Column.updateMany(
             { boardId, order: { $gte: newOrder, $lt: oldOrder } },
-            { $inc: { order: 1 } }
+            { $inc: { order: 1 } },
         );
     }
 
@@ -51,6 +51,16 @@ const reorderColumns = asyncHandler(async (req, res) => {
             await columns[i].save();
         }
     }
+
+    // Real-time update và Socket.io
+    global.io.to(boardId.toString()).emit("columns_reordered", {
+        boardId,
+        columns: columns.map((col) => ({
+            id: col._id,
+            title: col.title,
+            order: col.order,
+        })),
+    });
 
     res.status(200).json({
         success: true,

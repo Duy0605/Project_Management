@@ -27,6 +27,14 @@ const updateColumn = asyncHandler(async (req, res) => {
 
     await column.save();
 
+    // Real-time update và Socket.io
+    global.io.to(boardId.toString()).emit("column_updated", {
+        id: column._id,
+        title: column.title,
+        boardId: column.boardId,
+        order: column.order,
+    });
+
     // Log activity 
     await createActivity(req.user._id, "updated_column", {
         board: boardId,

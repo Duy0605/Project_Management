@@ -26,6 +26,12 @@ const deleteColumn = asyncHandler(async (req, res) => {
         { $inc: { order: -1 } },
     );
 
+    // Real-time update và Socket.io
+    global.io.to(boardId.toString()).emit("column_deleted", {
+        deleteColumnId: columnId,
+        boardId,
+    });
+
     // Log activity
     await createActivity(req.user._id, "deleted_column", {
         board: boardId,
