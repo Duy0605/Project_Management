@@ -13,6 +13,7 @@ import DueDateTask from "./DueDateTask";
 import AssignMember from "./AssignMember";
 import UnassignUser from "./unassignUser";
 import { avatar } from "../utils/avatar";
+import { socket } from "../utils/socket";
 
 const DetailTask = ({ taskId, columnName, onClose, onUpdate }) => {
     const [task, setTask] = useState(null);
@@ -158,12 +159,25 @@ const DetailTask = ({ taskId, columnName, onClose, onUpdate }) => {
         setSaving(false);
 
         if (result.success) {
-            if (onUpdate) onUpdate();
             onClose();
         } else {
             alert(result.message || "Xóa task thất bại");
         }
     };
+
+    useEffect(() => {
+        const handleTaskUpdated = ({ taskId: deletedTaskId }) => {
+            if (deletedTaskId === taskId) {
+                onClose();
+            }
+        };
+
+        socket.on("task_deleted", handleTaskUpdated);
+        
+        return () => {
+            socket.off("task_deleted", handleTaskUpdated);
+        };
+    }, [taskId, onClose]);
 
     const formatDate = (date) => {
         if (!date) return null;

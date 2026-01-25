@@ -208,6 +208,7 @@ const TaskPage = () => {
         })();
     }, [boardId]);
 
+    
     useEffect(() => {
         if (!boardId) return;
 
@@ -236,6 +237,31 @@ const TaskPage = () => {
 
         return () => {
             socket.off("task_created", handleTaskCreated);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleTaskDeleted = (deletedTask) => {
+            setColumns((prevColumns) =>
+                prevColumns.map((col) =>
+                    (col._id || col.id).toString() === deletedTask.columnId.toString()
+                        ? {
+                              ...col,
+                              tasks: (col.tasks || []).filter(
+                                    (task) =>
+                                        (task._id || task.id).toString() !==
+                                        deletedTask._id.toString(),
+                                ),
+                            }
+                        : col,
+                ),
+            );
+        };
+
+        socket.on("task_deleted", handleTaskDeleted);
+
+        return () => {
+            socket.off("task_deleted", handleTaskDeleted);
         };
     }, []);
 

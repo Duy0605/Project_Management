@@ -36,6 +36,13 @@ const deleteTask = asyncHandler(async (req, res) => {
         { $inc: { order: -1 } }
     );
 
+    // Real-time update và Socket.io
+    global.io.to(boardId.toString()).emit("task_deleted", {
+        _id: taskId,
+        columnId,
+        boardId,
+    });
+
     // Log activity
     await createActivity(req.user._id, "deleted_task", {
         board: boardId,

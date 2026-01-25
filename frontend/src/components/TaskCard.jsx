@@ -55,7 +55,7 @@ const TaskCard = ({ task, onClick, isPreview = false }) => {
                     onClick={handleToggleCheck}
                     disabled={loading}
                     className={`
-                        flex items-center justify-center
+                        flex shrink-0 items-center justify-center
                         h-5 rounded-full border-2
                         transition-all duration-200 ease-out
                         ${
