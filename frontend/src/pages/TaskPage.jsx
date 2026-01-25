@@ -208,7 +208,6 @@ const TaskPage = () => {
         })();
     }, [boardId]);
 
-    
     useEffect(() => {
         if (!boardId) return;
 
@@ -244,15 +243,16 @@ const TaskPage = () => {
         const handleTaskDeleted = (deletedTask) => {
             setColumns((prevColumns) =>
                 prevColumns.map((col) =>
-                    (col._id || col.id).toString() === deletedTask.columnId.toString()
+                    (col._id || col.id).toString() ===
+                    deletedTask.columnId.toString()
                         ? {
                               ...col,
                               tasks: (col.tasks || []).filter(
-                                    (task) =>
-                                        (task._id || task.id).toString() !==
-                                        deletedTask._id.toString(),
-                                ),
-                            }
+                                  (task) =>
+                                      (task._id || task.id).toString() !==
+                                      deletedTask._id.toString(),
+                              ),
+                          }
                         : col,
                 ),
             );
@@ -262,6 +262,117 @@ const TaskPage = () => {
 
         return () => {
             socket.off("task_deleted", handleTaskDeleted);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleTaskMoved = ({
+            taskId,
+            oldColumnId,
+            newColumnId,
+            newOrder,
+        }) => {
+            setColumns((prevColumns) => {
+                let movedTask = null;
+
+                // Loại bỏ task khỏi cột cũ
+                const columnsAfterRemoval = prevColumns.map((col) => {
+                    if (
+                        (col._id || col.id).toString() ===
+                        oldColumnId.toString()
+                    ) {
+                        const filteredTasks = (col.tasks || []).filter(
+                            (task) => {
+                                if (
+                                    (task._id || task.id).toString() ===
+                                    taskId.toString()
+                                ) {
+                                    movedTask = task;
+                                    return false;
+                                }
+                                return true;
+                            },
+                        );
+                        return {
+                            ...col,
+                            tasks: filteredTasks.map((task, index) => ({
+                                ...task,
+                                order: index,
+                            })),
+                        };
+                    }
+                    return col;
+                });
+
+                if (!movedTask) return prevColumns;
+
+                // Thêm task vào cột mới
+                return columnsAfterRemoval.map((col) => {
+                    if (
+                        (col._id || col.id).toString() ===
+                        newColumnId.toString()
+                    ) {
+                        const tasks = [...(col.tasks || [])];
+                        tasks.splice(newOrder, 0, movedTask);
+                        return {
+                            ...col,
+                            tasks: tasks.map((task, index) => ({
+                                ...task,
+                                order: index,
+                            })),
+                        };
+                    }
+                    return col;
+                });
+            });
+        };
+
+        socket.on("task_moved", handleTaskMoved);
+
+        return () => {
+            socket.off("task_moved", handleTaskMoved);
+        };
+    }, []);
+
+    useEffect(() => {
+        const handleTaskReordered = ({ taskId, columnId, newOrder }) => {
+            setColumns((prevColumns) => {
+                let reorderedTask = null;
+                const updatedColumns = prevColumns.map((col) => {
+                    if (
+                        (col._id || col.id).toString() === columnId.toString()
+                    ) {
+                        const tasks = (col.tasks || []).filter((task) => {
+                            if (
+                                (task._id || task.id).toString() ===
+                                taskId.toString()
+                            ) {
+                                reorderedTask = task;
+                                return false;
+                            }
+                            return true;
+                        });
+                        if (reorderedTask) {
+                            tasks.splice(newOrder, 0, reorderedTask);
+                        }
+                        return {
+                            ...col,
+                            tasks: tasks.map((task, index) => ({
+                                ...task,
+                                order: index,
+                            })),
+                        };
+                    }
+                    return col;
+                });
+                return updatedColumns;
+            });
+        };
+
+        socket.on("task_reordered", handleTaskReordered);
+
+        return () => {
+            socket.off("task_reordered", handleTaskReordered);
         };
     }, []);
 

@@ -57,6 +57,16 @@ const moveTask = asyncHandler(async (req, res) => {
         }
     }
 
+    // Real-time update và Socket.io
+    global.io.to(task.boardId.toString()).emit("task_moved", {
+        taskId: task._id,
+        title: task.title,
+        boardId: task.boardId,
+        oldColumnId: oldColumnId,
+        newColumnId: newColumnId,
+        newOrder: task.order,
+    });
+
     res.status(200).json({
         success: true,
         message: "Di chuyển task thành công",
