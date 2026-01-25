@@ -19,6 +19,7 @@ import {
     SortableContext,
     horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
+import { socket } from "../utils/socket";
 
 const getColumnId = (column) => (column._id || column.id).toString();
 
@@ -208,6 +209,37 @@ const TaskPage = () => {
     }, [boardId]);
 
     useEffect(() => {
+        if (!boardId) return;
+
+        socket.emit("join_board", boardId);
+
+        console.log("Emitted join_board for boardId:", boardId);
+
+        return () => {
+            socket.off("task_created");
+        };
+    }, [boardId]);
+
+    useEffect(() => {
+        const handleTaskCreated = (newTask) => {
+            setColumns((prevColumns) =>
+                prevColumns.map((col) =>
+                    (col._id || col.id).toString() ===
+                    newTask.columnId.toString()
+                        ? { ...col, tasks: [...(col.tasks || []), newTask] }
+                        : col,
+                ),
+            );
+        };
+
+        socket.on("task_created", handleTaskCreated);
+
+        return () => {
+            socket.off("task_created", handleTaskCreated);
+        };
+    }, []);
+
+    useEffect(() => {
         const handleClickOutside = (event) => {
             if (
                 addColumnRef.current &&
@@ -229,23 +261,11 @@ const TaskPage = () => {
     const handleCreateTask = async (columnId, title) => {
         try {
             const result = await taskService.createTask(columnId, { title });
+
             if (result.success) {
-                // Cập nhật tasks trong column
-                setColumns((prevColumns) =>
-                    prevColumns.map((col) => {
-                        const colId = col.id || col._id;
-                        if (colId.toString() === columnId.toString()) {
-                            return {
-                                ...col,
-                                tasks: [...(col.tasks || []), result.data],
-                            };
-                        }
-                        return col;
-                    }),
-                );
                 return true;
             } else {
-                alert(result.message || "Tạo task thất bại");
+                alert(result.message || "Lỗi khi tạo task");
                 return false;
             }
         } catch (error) {

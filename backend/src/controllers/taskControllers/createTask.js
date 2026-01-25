@@ -34,6 +34,15 @@ const createTask = asyncHandler(async (req, res) => {
         order,
     });
 
+    // Real-time update và Socket.io
+    global.io.to(boardId.toString()).emit("task_created", {
+        _id: newTask._id,
+        title: newTask.title,
+        columnId: newTask.columnId,
+        boardId: newTask.boardId,
+        order: newTask.order,
+    });
+
     // Log activity 
     await createActivity(req.user._id, "created_task", {
         board: boardId,
