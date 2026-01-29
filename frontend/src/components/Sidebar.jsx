@@ -18,11 +18,11 @@ const Sidebar = () => {
 
     const mainMenuItems = [
         { icon: FiHome, label: "Trang chủ", path: "/home" },
-        { icon: FiTrello, label: "Bảng", path: "/board" },
+        { icon: FiTrello, label: "Bảng dự án", path: "/board" },
     ];
 
     const workspaceItems = [
-        { icon: FiTrello, label: "Bảng", path: "/personal-boards" },
+        { icon: FiTrello, label: "Bảng dự án của tôi", path: "/personal-boards" },
         { icon: FiUsers, label: "Thành viên", path: "/members" },
     ];
 

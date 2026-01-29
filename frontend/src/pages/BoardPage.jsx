@@ -117,7 +117,7 @@ const BoardPage = () => {
             showCreate: true,
         },
         {
-            title: "Các dự án của khách",
+            title: "Các dự án tôi tham gia",
             icon: <FiInfo />,
             boards: guestBoards,
         },
@@ -169,7 +169,7 @@ const BoardPage = () => {
                                             }
                                             className="px-3 py-1 text-gray-100 rounded bg-slate-700 hover:bg-slate-600"
                                         >
-                                            Bảng
+                                            Bảng dự án của tôi
                                         </button>
                                         <button
                                             onClick={() => navigate("/members")}
@@ -186,7 +186,7 @@ const BoardPage = () => {
                             {section.boards.length === 0 &&
                                 !section.showCreate && (
                                     <div className="py-8 text-center text-gray-400">
-                                        <p>Chưa có board nào</p>
+                                        <p>Chưa có bảng dự án nào</p>
                                     </div>
                                 )}
 
